@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Drawing;
 
 namespace Tp3.Models
 {
@@ -9,10 +8,14 @@ namespace Tp3.Models
         [Key]
         public int Id { get; set; }
         public string Name { get; set; }
+        public string? PictureURL { get; set; }
+        public DateTime ReleaseDate { get; set; }
         public int GenreId { get; set; }
         [ForeignKey("GenreId")]
         public Genre? Genre { get; set; }
         public ICollection<Customer>? Customers { get; set; }
 
+        [NotMapped]
+        public IFormFile? PictureFile { get; set; }
     }
 }

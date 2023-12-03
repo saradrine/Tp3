@@ -2,44 +2,69 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Tp3.Models;
+using Tp3.Repositories;
+using Tp3.Services.ServiceContracts;
 
 namespace Tp3.Controllers
 {
     public class MovieController : Controller
     {
-        private readonly ApplicationDbContext _db;
-        public MovieController(ApplicationDbContext db)
+        public readonly IMovieService _movieService;
+
+        public readonly MovieRepository _movieRepository;
+
+
+        public MovieController(IMovieService movieService, MovieRepository movieRepository)
         {
-            _db = db;
+            // _appDbContext = appDbContext;
+            _movieService = movieService;
+            _movieRepository = movieRepository;
+
         }
+
 
         public IActionResult Index()
         {
-            var movies = _db.movies.Include(m => m.Genre).ToList();
-            return View(movies);
+            return View();
         }
 
-       /* public IActionResult Create()
+        public IActionResult Details(int id)
         {
-            ViewBag.Genres = new SelectList(_db.genres, "Id", "Name");
+            //var movie = _db.movies.Include(m => m.Genre).FirstOrDefault(m => m.Id == id);
+            var movie = _movieRepository.GetMovieById(id);
+            return View(movie);
+        }
+
+        public IActionResult Create()
+        {
             return View();
         }
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(Movie movie)
+        public async Task<IActionResult> Create(Movie c)
         {
-            if (ModelState.IsValid)
-            {
-                
-                _db.movies.Add(movie);
-                _db.SaveChanges();
+            ViewBag.errors = ModelState.Values
+           .SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
 
-                return RedirectToAction(nameof(Index));
+            if (!ModelState.IsValid)
+            {
+                return View();
             }
 
-            ViewBag.Genres = new SelectList(_db.genres, "Id", "Name");
-            return View(movie);
+            if (c.PictureFile != null)
+            {
+                var fileName = Path.GetFileName(c.PictureFile.FileName);
+                var filePath = Path.Combine("D:/GL3/sem1/frameworks de dev/tpTp3/Tp3/wwwroot/", fileName);
 
-        }*/
+                using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                {
+                    await c.PictureFile.CopyToAsync(stream);
+                }
+                c.PictureURL = "/" + fileName;
+            }
+
+            _movieRepository.CreateMovie(c);
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

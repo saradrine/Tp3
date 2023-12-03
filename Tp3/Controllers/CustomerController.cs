@@ -2,20 +2,24 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Tp3.Models;
+using Tp3.Repositories;
 
 namespace Tp3.Controllers
 {
     public class CustomerController : Controller
     {
         private readonly ApplicationDbContext _db;
-        public CustomerController(ApplicationDbContext db)
+        private readonly CustomerRepository _customerRepository;
+        public CustomerController(CustomerRepository customerRepository, ApplicationDbContext db)
         {
             _db = db;
+            _customerRepository = customerRepository;
         }
 
         public IActionResult Index()
         {
-            var customers = _db.customers.Include(m => m.Membershiptype).ToList();
+            //var customers = _db.customers.Include(m => m.Membershiptype).ToList();
+            List<Customer> customers = _customerRepository.GetAllCustomers();
             return View(customers);
 
         }
@@ -50,8 +54,9 @@ namespace Tp3.Controllers
                 });
                 return View();
             }
-            _db.customers.Add(c);
-            _db.SaveChanges();
+            //_db.customers.Add(c);
+            //_db.SaveChanges();
+            _customerRepository.CreateCustomer(c);
             return RedirectToAction(nameof(Index));
 
         }
